@@ -34,10 +34,6 @@ class LifeCycleComponent extends React.Component {
         }
     }
 
-    getSnapshotBeforeUpdate() {
-        console.log("getSnapshotBeforeUpdate")
-    }
-
     componentDidMount() {
         console.log("componentDidMount")
     }
