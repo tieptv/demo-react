@@ -1,12 +1,47 @@
+import axios from "axios";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import SockJS from "sockjs-client";
+import * as Stomp from 'stompjs';
 
 function HookComponent(props) {
+    const url = 'http://localhost:8090'
+    let ws;
+    let stompClient;
     const [name, setName] = useState('EIS');
     const [member, setMember] = useState(17);
+    const [room, setRoom] = useState([]);
 
     useEffect(() => {
         console.log("useEffect")
-    }, [name])
+       
+            connect()
+        
+    })
+
+    const connect = () => {
+        console.log("Initialize WebSocket Connection");
+        ws = new SockJS(`${url}/ws`);
+        stompClient = Stomp.over(ws);
+        stompClient.connect({}, function (frame) {
+            getRoom()
+            stompClient.subscribe('/property/list', function (sdkEvent) {
+                console.log(sdkEvent)
+                setRoom(sdkEvent.body);
+            });
+            //_this.stompClient.reconnect_delay = 2000;
+        }, errorCallBack);
+    };
+
+    const errorCallBack = (error) => {
+        console.log("errorCallBack -> " + error)
+        setTimeout(() => {
+            connect();
+        }, 5000);
+    }
+
+    const getRoom = () => {
+        return axios.get(`${url}/api/property`)
+    }
 
     const changeInput = (e, type) => {
         if (type === 'name') {
@@ -38,6 +73,8 @@ function HookComponent(props) {
             <p>Member</p>
             <input value={member} onChange={e => changeInput(e, "member")} />
             <br/>
+            <p>Room</p>
+            {room}
             <br/>
             <ChildComponent setDefault={setDefault}/>
             <p><a href="/">React life cycle</a></p>
